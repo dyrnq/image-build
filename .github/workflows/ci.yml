@@ -83,11 +83,17 @@ jobs:
         run: |
           repo=${{ matrix.repo }}
           git clone --depth 1 "${{ matrix.repo }}" __directory
+      - name: Maven build
+        run: |
+          repo=${{ matrix.repo }}
+          pushd __directory || exit 1
+            ./mvnw clean package -Dmaven.test.skip=true
+          popd || exit 1
       - name: Build dockerfile (with not push)
         run: |
           repo=${{ matrix.repo }}
           pushd __directory || exit 1
-          ./mvnw clean package -Dmaven.test.skip=true
+
           if grep "apisix" <<< "${repo}"; then
             ./buildx.sh --push false --repo ${{ secrets.DOCKER_USERNAME }} --image-name apisixweb --base eclipse-temurin:21-jre-noble
             ./buildx.sh --push false --repo ${{ secrets.DOCKER_USERNAME }} --image-name apisixweb --base eclipse-temurin:21-jdk-noble
